@@ -1,0 +1,222 @@
+%! Author = eyal
+%! Date = 05/06/2025
+\documentclass[11pt]{article}
+
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{float}
+
+\author{Eyal Stolov}
+\date{June 2025}
+\title{Classifying Forest Cover Types}
+
+\begin{document}
+
+    \maketitle
+
+    \
+
+    \section*{Introduction}
+    In the following problem, we are asked to predict the different forest cover type based on cartographic variables.
+    This dataset area includes four wilderness areas located in the Roosevelt National Forest of northern Colorado. These areas represent forests with minimal human-caused disturbances, so that existing forest cover types are more a result of ecological processes rather than forest management practices.
+
+    \section*{EDA}
+
+    \subsection*{Features}
+    \subsubsection*{Target Feature}
+    Our target feature is called "Cover\_Type", and is a categorial feature, with 7 different cover types:
+
+    \begin{enumerate}
+     \item Spruce/Fir
+     \item Lodgepole Pine
+     \item Ponderosa Pine
+     \item Cottonwood/Willow
+     \item Aspen
+     \item Douglas-fir
+     \item Krummholz
+    \end{enumerate}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{./images/cover_type_dist}
+    \end{figure}
+
+    Unfortunately, our target feature is very imbalanced... We have 283,301 samples of class 2, whereas we have only 2747 samples of class 4!
+    What does this mean for us?
+    When splitting to train and test sets, we need to make sure there is a proportion of our mionority classes in both sets.
+
+    \subsubsection*{Predictor Features}
+    \textbf{The dataset contains 54 different predictor features:}
+    \begin{enumerate}
+        \item Elevation - Elevation in meters
+        \item Aspect - Aspect in degrees azimuth
+        \item Slope - Slope in degrees
+        \item Horizontal\_Distance\_To\_Hydrology - Horz Dist to nearest surface water features
+        \item Vertical\_Distance\_To\_Hydrology - Vert Dist to nearest surface water features
+        \item Horizontal\_Distance\_To\_Roadways - Horz Dist to nearest roadway
+        \item Hillshade\_9am (0 to 255 index) - Hillshade index at 9am, summer solstice
+        \item Hillshade\_Noon (0 to 255 index) - Hillshade index at noon, summer solstice
+        \item Hillshade\_3pm (0 to 255 index) - Hillshade index at 3pm, summer solstice
+        \item Horizontal\_Distance\_To\_Fire\_Points - Horz Dist to nearest wildfire ignition points
+        \item Wilderness\_Area (4 binary columns, 0 = absence or 1 = presence) - Wilderness area designation
+        \item Soil\_Type (40 binary columns, 0 = absence or 1 = presence) - Soil Type designation
+        \item Cover\_Type (7 types, integers 1 to 7) - Forest Cover Type designation
+    \end{enumerate}
+
+    \textbf{The wilderness areas are:}
+    \begin{enumerate}
+        \item Rawah Wilderness Area
+        \item Neota Wilderness Area
+        \item Comanche Peak Wilderness Area
+        \item Cache la Poudre Wilderness Area
+    \end{enumerate}
+
+    \textbf{The soil types are:}
+
+    \begin{enumerate}
+
+        \item athedral family - Rock outcrop complex, extremely stony.
+        \item anet - Ratake families complex, very stony.
+        \item aploborolis - Rock outcrop complex, rubbly.
+        \item atake family - Rock outcrop complex, rubbly.
+        \item anet family - Rock outcrop complex complex, rubbly.
+        \item anet - Wetmore families - Rock outcrop complex, stony.
+        \item othic family.
+        \item upervisor - Limber families complex.
+        \item routville family, very stony.
+        \item Bullwark - Catamount families - Rock outcrop complex, rubbly.
+        \item Bullwark - Catamount families - Rock land complex, rubbly.
+        \item Legault family - Rock land complex, stony.
+        \item Catamount family - Rock land - Bullwark family complex, rubbly.
+        \item Pachic Argiborolis - Aquolis complex.
+        \item unspecified in the USFS Soil and ELU Survey.
+        \item Cryaquolis - Cryoborolis complex.
+        \item Gateview family - Cryaquolis complex.
+        \item Rogert family, very stony.
+        \item Typic Cryaquolis - Borohemists complex.
+        \item Typic Cryaquepts - Typic Cryaquolls complex.
+        \item Typic Cryaquolls - Leighcan family, till substratum complex.
+        \item Leighcan family, till substratum, extremely bouldery.
+        \item Leighcan family, till substratum - Typic Cryaquolls complex.
+        \item Leighcan family, extremely stony.
+        \item Leighcan family, warm, extremely stony.
+        \item Granile - Catamount families complex, very stony.
+        \item Leighcan family, warm - Rock outcrop complex, extremely stony.
+        \item Leighcan family - Rock outcrop complex, extremely stony.
+        \item Como - Legault families complex, extremely stony.
+        \item Como family - Rock land - Legault family complex, extremely stony.
+        \item Leighcan - Catamount families complex, extremely stony.
+        \item Catamount family - Rock outcrop - Leighcan family complex, extremely stony.
+        \item Leighcan - Catamount families - Rock outcrop complex, extremely stony.
+        \item Cryorthents - Rock land complex, extremely stony.
+        \item Cryumbrepts - Rock outcrop - Cryaquepts complex.
+        \item Bross family - Rock land - Cryumbrepts complex, extremely stony.
+        \item Rock outcrop - Cryumbrepts - Cryorthents complex, extremely stony.
+        \item Leighcan - Moran families - Cryaquolls complex, extremely stony.
+        \item Moran family - Cryorthents - Leighcan family complex, extremely stony.
+        \item Moran family - Cryorthents - Rock land complex, extremely stony.
+
+    \end{enumerate}
+
+    In summery, we have 44 binary features (0 or 1), and 10 numerical features.
+
+    \subsection*{Correlations}
+    We start by checking what features have the biggest correlation with our target feature:
+
+    \begin{figure}[H]
+        \includegraphics[width=0.5\textwidth]{./images/top_positive_correlations}
+        \includegraphics[width=0.5\textwidth]{./images/top_negative_correlations}
+    \end{figure}
+
+    None of our features have a strong linear correlation with our target feature, suggesting linear methods might struggle.
+    This indicates we should try using a non-linear model, like KNN.
+    \newline
+
+    We continue by checking the $spearman$ and $kendall$ correlations of all our numerical features:
+    \begin{figure}[H]
+        \includegraphics[width=0.5\textwidth]{./images/spearman_heatmap}
+        \includegraphics[width=0.5\textwidth]{./images/kendall_heatmap}
+    \end{figure}
+
+    Again, we don't see any strong correlations, except for the features $Hillshade\_3pm$ and $Hillshade\_9am$, lets have a look at there combined scatterplot:
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{./images/scatterplot_hillshade}
+    \end{figure}
+
+    This shape of the scatterplot makes a lot of sense, as this features are affected by the Earth\'s rotation.
+    Nonetheless, by also coloring the dots by each $Cover\_type$, we can see class 6 (Douglas-fir), has quite a nice cluster inside. This further indicates $KNN$ might be a more suitable algorithm for this exercise.
+
+    \newpage
+    \section*{Training}
+    For this problem, as suggested from the EDA, we will use KNN for our algorithm.
+
+    \subsection*{Potential Issues}
+
+    \subsubsection*{Computationally Expensive}
+    KNN is a non-parametric, this means we do not need to make assumptions about the relationship between the predictors and the target feature.
+    KNN is also an instance-based algorithm means that our algorithm doesn’t explicitly learn a model.
+    Instead, it chooses to memorize the training instances which are subsequently used as “knowledge” for the prediction phase.
+    The downside of this is it's both computationally and memory expensive.
+    To help with those downsides, we use a special version of $KNN$, called $KD tree KNN$.
+    In this version $KNN$ doesn't calculate distances with points that are far away and for sure won't be in our K closest neighbors.
+
+    \subsubsection*{Minority Classes}
+    We have some classes that dont have a lot of samples compared to others.
+    For this reason we will "stratify" our dataset, which simply means when splitting to test and train, we will by ration of classes.
+    We will be using KFold, so at each fold we will do a stratified split.
+
+    \subsection*{Choosing K}
+
+    How do we choose K?
+    Let's try 20 different K's and then decide:
+
+    \subsubsection*{Overall Accuracy}
+    First, we check the overall accuracy of 20 different K's:
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{./images/overall_accuracy}
+    \end{figure}
+
+    If we check only the overall accuracy, its clear the best $K$ by overall accuracy is 3 with an impressive accuracy of 0.9687!
+
+    \subsubsection*{Accuracy Per Class}
+    We can't check only the overall accuracy, as there are minority classes that need special attention. Lets see what is the best $K$ per class:
+
+    \begin{figure}[H]
+        \includegraphics[width=0.3\textwidth]{./images/Class 1}
+        \includegraphics[width=0.3\textwidth]{./images/Class 2}
+        \includegraphics[width=0.3\textwidth]{./images/Class 3}
+    \end{figure}
+
+    \begin{figure}[H]
+        \includegraphics[width=0.3\textwidth]{./images/Class 4}
+        \includegraphics[width=0.3\textwidth]{./images/Class 5}
+        \includegraphics[width=0.3\textwidth]{./images/Class 6}
+    \end{figure}
+
+    \begin{figure}[H]
+        \includegraphics[width=0.3\textwidth]{./images/Class 7}
+    \end{figure}
+
+    Now, if we for instance want to minimize the recall for class 4 (one of our minority classes), we should actually choose $K=1$!
+
+    \subsubsection*{Mean Balanced Accuracy}
+    Another interesting metric is $Mean Balanced Accuracy$, which just means we take each class accuracy at each k, and calculate their combined mean:
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{./images/mean_balanced_accuracy}
+    \end{figure}
+
+    Looking at this, it's clear that if we want to choose a $K$ that gives fair accuracy in all the classes, we should choose $K=1$ (accuracy = 0.9339).
+
+    \subsection*{Conclusions}
+    In conclusion, choosing the right K will vary based on the priorities of the client.
+    If we want to get overall good accuracy for all different classes, we will choose $K=1$, but if we only care about overall accuracy between all classes, a better fit will be $K=3$.
+    Furthermore, it's very clear that choosing an odd $K$ will almost always return better accuracy than an even one.
+
+
+\end{document}
