@@ -1,6 +1,11 @@
 # Custom
 .idea
 .venv
+**/images/*
+!**/images/.gitkeep
+*.zip
+*.gz
+*.aux
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
